@@ -94,6 +94,9 @@ class Board():
         else:
             return self.grid[x][y]
 
+    def GetPossibleValues(self, x, y):
+        return self.cellPossibilities[x - 1][y - 1]
+
     def RemovePossibilities(self, x, y, val):
         self.cellPossibilities[x - 1][y - 1] = []
 

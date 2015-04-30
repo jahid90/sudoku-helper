@@ -22,7 +22,7 @@ if the modifier(--solve) is omitted, it'll just parse and display the
 puzzle with the exclusions printed at the ends
 
 it'll try to solve the puzzle and provide feedback on the screen
-with a delay of 1 sec between steps
+with a delay of 2 secs between steps
 
 the solver uses a bruteforce algorithm and can take some time
 

@@ -33,9 +33,12 @@ def solve(orig, x, y, noDelay):
     for i in xrange(x, size):
         for j in xrange(y, size):
             if 0 == board.Get(i, j):
-                for val in possibleValues:
+                print "board configuration at this stage:"
+                board.Display()
+
+                for val in board.GetPossibleValues(i, j):
                     if not noDelay:
-                        time.sleep(1)
+                        time.sleep(2)
 
                     print "attempting with " + str(val) + " at (" + str(i) +  ", " + str(j) + ")"
 
@@ -44,9 +47,6 @@ def solve(orig, x, y, noDelay):
                     if 0 == board.Get(i, j):
                         print "can't proceed, rules violation"
                         continue
-
-                    print "board configuration at this stage:"
-                    board.Display()
 
                     _i = i
                     _j = (j + 1) % size
@@ -64,11 +64,11 @@ def solve(orig, x, y, noDelay):
                     print str(val) + " at (" + str(i) + ", " + str(j) + ") won't solve, reverting back"
                     try:
                         board.cellPossibilities[i - 1][j - 1].remove(val)
+                        checkSinglePossibilities(board)
                     except (ValueError):
                         continue
 
                     board.Unset(i, j)
-
 
     return False
 
