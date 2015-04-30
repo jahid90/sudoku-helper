@@ -6,7 +6,7 @@ import time
 import board
 import util
 
-def solve(puzzleFile, x, y):
+def solve(puzzleFile, x, y, noDelay):
     board = puzzleFile.GetBoard()
     size = board.GetSize()
 
@@ -16,9 +16,10 @@ def solve(puzzleFile, x, y):
         for j in xrange(y, size):
             if 0 == board.Get(i, j):
                 for val in possibleValues:
-                    time.sleep(1)
+                    if not noDelay:
+                        time.sleep(1)
 
-                    print "attempting with", val, "at (", i, ", ", j, ")"
+                    print "attempting with " + str(val) + " at (" + str(i) +  ", " + str(j) + ")"
 
                     board.Set(i, j, val)
 
@@ -39,7 +40,7 @@ def solve(puzzleFile, x, y):
                     if 0 == _i:
                         return board.IsSolved()
 
-                    if solve(puzzleFile, _i, _j):
+                    if solve(puzzleFile, _i, _j, noDelay):
                         return True
 
                     print val, "at (", i, ", ", j, ") won't solve, revertng back"
@@ -51,21 +52,46 @@ def solve(puzzleFile, x, y):
 def usage():
     progName = sys.argv[0][sys.argv[0].rfind('/') + 1 : ]
     params = " <file_with_sudoku_puzzle>"
-    usage = "usage: " + progName +  params
+    options = " [OPTS]"
+
+    optDetails = """
+OPTS
+    --solve         attempt to solve the puzzle
+    --no-delay      do not pause between steps
+    """
+
+    usage = "usage: " + progName + options + params
 
     print usage
+    print optDetails
 
 def main():
-    puzzleFile = util.PuzzleFile(sys.argv[1])
+    path = sys.argv[len(sys.argv) - 1]
+
+    s = False
+    d = False
+
+    if not 0 == sys.argv.count('--solve'):
+        s = True
+
+    if not 0 == sys.argv.count('--no-delay'):
+        d = True
+
+    puzzleFile = util.PuzzleFile(path)
 
     puzzleFile.Read()
     puzzleFile.Parse()
 
-    if solve(puzzleFile, 1, 1):
-        print "Congratulations!", "the puzzle has been solved!"
+    if s:
+        print
         puzzleFile.GetBoard().Display()
-    else:
-        print "Sorry!", "the puzzle could not be solved"
+
+        if solve(puzzleFile, 1, 1, d):
+            print "Congratulations!", "the puzzle has been solved!"
+        else:
+            print "Sorry!", "the puzzle could not be solved"
+
+    print
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:

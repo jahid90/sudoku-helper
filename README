@@ -1,5 +1,11 @@
 a sudoku solver and helper
 
+usage: ./game.py [OPTS] samplefile
+
+OPTS
+    --solve         attempt to solve the puzzle
+    --no-delay      do not pause between steps
+
 to use, create a file with the sudoku puzzle in the format
 
 // sample
