@@ -1,0 +1,59 @@
+a sudoku solver and helper
+
+to use, create a file with the sudoku puzzle in the format
+
+// sample
+2               // the puzzle size, 2x2
+1 2 3 4         // replace by 0 for blanks
+3 4 1 2
+4 3 2 1
+2 1 4 3
+
+then run 
+$./game.py --solve sample
+
+if the modifier(--solve) is omitted, it'll just parse and display the 
+puzzle with the exclusions printed at the ends
+
+it'll try to solve the puzzle and provide feedback on the screen
+with a delay of 1 sec between steps
+
+the solver uses a bruteforce algorithm and can take some time
+
+supports puzzles of arbitrarily large size, but display will be affected
+by any size > 3; has only been tested with sizes 1, 2 and 3
+
+the solver will print the first solution it discovers
+
+-------------------------------------------------------------------
+
+TODO
+    a. provide support for user to solve puzzle interactively
+        (can be done currently with the interpreter
+
+        >>> import board
+        >>> import util
+        >>> f = util.PuzzleFile('sample')
+        >>> f.Read()
+        >>> f.Parse()
+        >>> b = f.GetBoard()
+        >>> b.Display()
+
+        the board will be dispayed with the exclusions printed at the right and below to help solve the puzzle
+        each cell can then be set
+
+        >>> b.Set(1, 2, 4)
+
+        or unset incase of a mistake
+
+        >>> b.Unset(1, 2)
+
+        to check if the puzzle is solved
+
+        >>> b.IsSolved()
+
+    b. improve display for size > 3
+
+    c. add support for characters other than just numbers
+
+    d. improve solver algorithm(?)
