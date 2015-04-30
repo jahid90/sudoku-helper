@@ -48,8 +48,6 @@ class Board():
 
             #if False == self.CheckRowValid():
             if not 0 == self.rowExclusions[x].count(val):
-                self.Display()
-                print self.cellPossibilities[x - 1][y - 1]
                 print "Warning!", "row:", x, "cannot contain more than one", val
                 self.grid[x][y] = 0
                 return
@@ -226,6 +224,7 @@ class Board():
                 if 0 == self.Get(i, j):
                     return False
 
+        self.Display()
         return True
 
 

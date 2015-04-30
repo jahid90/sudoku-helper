@@ -1,17 +1,13 @@
 #!/usr/bin/env python
 
+import copy
 import sys
 import time
 
 import board
 import util
 
-def solve(puzzleFile, x, y, noDelay):
-    board = puzzleFile.GetBoard()
-    size = board.GetSize()
-
-    possibleValues = [n for n in xrange(1, size)]
-
+def checkSinglePossibilities(board):
     while True:
         i, j = board.HasSinglePossibility()
 
@@ -22,6 +18,14 @@ def solve(puzzleFile, x, y, noDelay):
 
     print "after filling in single possibilities:"
     board.Display()
+
+def solve(orig, x, y, noDelay):
+    board = copy.deepcopy(orig)
+    size = board.GetSize()
+
+    possibleValues = [n for n in xrange(1, size)]
+
+    checkSinglePossibilities(board)
 
     if board.IsSolved():
         return True
@@ -54,15 +58,15 @@ def solve(puzzleFile, x, y, noDelay):
                     if 0 == _i:
                         return board.IsSolved()
 
-                    if solve(puzzleFile, _i, _j, noDelay):
+                    if solve(board, _i, _j, noDelay):
                         return True
 
                     print str(val) + " at (" + str(i) + ", " + str(j) + ") won't solve, reverting back"
                     try:
-                        board.cellPossibilities[i][j].remove(val)
+                        board.cellPossibilities[i - 1][j - 1].remove(val)
                     except (ValueError):
                         continue
-                        
+
                     board.Unset(i, j)
 
 
@@ -103,22 +107,13 @@ def main():
 
     if s:
         print
-        puzzleFile.GetBoard().Display()
 
-        if solve(puzzleFile, 1, 1, d):
+        if solve(puzzleFile.GetBoard(), 1, 1, d):
             print "Congratulations!", "the puzzle has been solved!"
         else:
             board = puzzleFile.GetBoard()
 
-            while True:
-                i, j = board.HasSinglePossibility()
-
-                if None == i and None == j:
-                    break
-                else:
-                    board.Set(i, j, board.GetSinglePossibleValue(i, j))
-            
-            board.Display()
+            checkSinglePossibilities(board)
 
             if board.IsSolved():
                 print "Congratulations!", "the puzzle has been solved!"
