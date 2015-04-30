@@ -31,6 +31,8 @@ class Board():
                 row.append(0)
             self.grid.append(row)
 
+        self.cellPossibilities = [[[x for x in xrange(1, self.size)] for y in xrange(1, self.size)] for z in xrange(1, self.size)]
+
     def GetSize(self):
         return self.size
 
@@ -39,13 +41,15 @@ class Board():
             print "Error!", "cell indices must be between 1 and", self.size - 1
 
         elif not 0 == self.grid[x][y]:
-            print "Error!", "cell already contains a value"
+            print "Error!", "cell (" + str(x) + ", " + str(y) + ") already contains a value"
 
         else:
             self.grid[x][y] = val
 
             #if False == self.CheckRowValid():
             if not 0 == self.rowExclusions[x].count(val):
+                self.Display()
+                print self.cellPossibilities[x - 1][y - 1]
                 print "Warning!", "row:", x, "cannot contain more than one", val
                 self.grid[x][y] = 0
                 return
@@ -70,14 +74,18 @@ class Board():
             self.rowExclusions[x].sort()
             self.columnExclusions[y].sort()
 
+            self.RemovePossibilities(x, y, val)
+
     def Unset(self, x, y):
-        val = self.grid[x][y]
+        val = self.Get(x, y)
 
         if not 0 == val:
             self.grid[x][y] = 0
 
             self.rowExclusions[x].remove(val)
             self.columnExclusions[y].remove(val)
+
+            self.AddPossibilities(x, y, val)
 
             # TODO reset maxRowExcl and maxColExcl count
             # entry could have been removed from row/col with max entries
@@ -88,11 +96,87 @@ class Board():
         else:
             return self.grid[x][y]
 
+    def RemovePossibilities(self, x, y, val):
+        self.cellPossibilities[x - 1][y - 1] = []
+
+        for i in xrange(1, self.size):
+            try:
+                self.cellPossibilities[i - 1][y - 1].remove(val)
+            except (ValueError):
+                continue
+
+        for j in xrange(1, self.size):
+            try:
+                self.cellPossibilities[x - 1][j - 1].remove(val)
+            except (ValueError):
+                continue
+
+        cellX = (x - 1) // self.separatorDist
+        cellY = (y - 1) // self.separatorDist
+
+        for i in xrange(self.separatorDist * cellX, self.separatorDist * (cellX + 1)):
+            for j in xrange(self.separatorDist * cellY, self.separatorDist * (cellY + 1)):
+                try:
+                    self.cellPossibilities[i][j].remove(val)
+                except (ValueError):
+                    continue
+
+    def AddPossibilities(self, x, y, val):
+        for i in xrange(1, self.size):
+            if 0 == self.cellPossibilities[i - 1][y - 1].count(val):
+                self.cellPossibilities[i - 1][y - 1].append(val)
+
+        for j in xrange(1, self.size):
+            if 0 == self.cellPossibilities[x - 1][j - 1].count(val):
+                self.cellPossibilities[x - 1][j - 1].append(val)
+
+        cellX = (x - 1) // self.separatorDist
+        cellY = (y - 1) // self.separatorDist
+
+        for i in xrange(self.separatorDist * cellX, self.separatorDist * (cellX + 1)):
+            for j in xrange(self.separatorDist * cellY, self.separatorDist * (cellY + 1)):
+                if 0 == self.cellPossibilities[i - 1][j - 1].count(val):
+                    self.cellPossibilities[i][j].append(val)
+
+        self.cellPossibilities[x - 1][y - 1] = [i for i in xrange(1, self.size)]
+        for i in self.rowExclusions[x]:
+            try:
+                board.cellPossibilities[x - 1][y - 1].remove(i)
+            except (ValueError):
+                continue
+        for j in self.colExclusions[y]:
+            try:
+                board.cellPossibilities[x - 1][y - 1].remove(j)
+            except (ValueError):
+                continue
+
+
+    def HasSinglePossibility(self):
+        for i in xrange(1, self.size):
+            for j in xrange(1, self.size):
+                if 1 == len(self.cellPossibilities[i - 1][j - 1]):
+                    if 0 == self.Get(i, j):
+                        return i, j
+                    else:
+                        try:
+                            board.cellPossibilities[i][j].remove(self.Get(i, j))
+                        except (ValueError):
+                            continue
+
+        return None, None
+
+    def GetSinglePossibleValue(self, x, y):
+        if not 1 == len(self.cellPossibilities[x - 1][y - 1]):
+            message = "(" + str(x) + ", " + str(y) + ") does not have single possibility"
+            raise RuntimeError(message)
+
+        return self.cellPossibilities[x - 1][y - 1][0]
+
     def CheckRowValid(self):
         for i in xrange(1, self.size):
             row = []
             for j in xrange(1, self.size):
-                val = self.grid[i][j]
+                val = self.Get(i, j)
                 if not 0 == val:
                     if not 0 == row.count(val):
                         return False
@@ -104,7 +188,7 @@ class Board():
         for i in xrange(1, self.size):
             row = []
             for j in xrange(1, self.size):
-                val = self.grid[j][i]
+                val = self.Get(j, i)
                 if not 0 == val:
                     if not 0 == row.count(val):
                         return False
@@ -116,7 +200,7 @@ class Board():
         mini = []
         for i in xrange(1 + self.separatorDist * r, 1 + self.separatorDist * (r + 1)):
             for j in xrange(1 + self.separatorDist * c, 1 + self.separatorDist * (c + 1)):
-                val = self.grid[i][j]
+                val = self.Get(i, j)
                 if not 0 == val:
                     if not 0 == mini.count(val):
                         return False
@@ -139,7 +223,7 @@ class Board():
     def IsSolved(self):
         for i in xrange(1, self.size):
             for j in xrange(1, self.size):
-                if 0 == self.grid[i][j]:
+                if 0 == self.Get(i, j):
                     return False
 
         return True

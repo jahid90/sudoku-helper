@@ -12,6 +12,20 @@ def solve(puzzleFile, x, y, noDelay):
 
     possibleValues = [n for n in xrange(1, size)]
 
+    while True:
+        i, j = board.HasSinglePossibility()
+
+        if None == i and None == j:
+            break
+        else:
+            board.Set(i, j, board.GetSinglePossibleValue(i, j))
+
+    print "after filling in single possibilities:"
+    board.Display()
+
+    if board.IsSolved():
+        return True
+
     for i in xrange(x, size):
         for j in xrange(y, size):
             if 0 == board.Get(i, j):
@@ -43,7 +57,12 @@ def solve(puzzleFile, x, y, noDelay):
                     if solve(puzzleFile, _i, _j, noDelay):
                         return True
 
-                    print val, "at (", i, ", ", j, ") won't solve, revertng back"
+                    print str(val) + " at (" + str(i) + ", " + str(j) + ") won't solve, reverting back"
+                    try:
+                        board.cellPossibilities[i][j].remove(val)
+                    except (ValueError):
+                        continue
+                        
                     board.Unset(i, j)
 
 
@@ -89,7 +108,23 @@ def main():
         if solve(puzzleFile, 1, 1, d):
             print "Congratulations!", "the puzzle has been solved!"
         else:
-            print "Sorry!", "the puzzle could not be solved"
+            board = puzzleFile.GetBoard()
+
+            while True:
+                i, j = board.HasSinglePossibility()
+
+                if None == i and None == j:
+                    break
+                else:
+                    board.Set(i, j, board.GetSinglePossibleValue(i, j))
+            
+            board.Display()
+
+            if board.IsSolved():
+                print "Congratulations!", "the puzzle has been solved!"
+            else:
+                print "Sorry!", "the puzzle could not be solved"
+                print board.cellPossibilities
 
     print
 
