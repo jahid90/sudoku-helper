@@ -63,3 +63,5 @@ TODO
     c. add support for characters other than just numbers
 
     d. improve solver algorithm(?)
+
+    e. invert exclusions - display entries which can be filled in that row/column instead of what has been filled in already

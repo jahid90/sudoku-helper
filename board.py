@@ -2,6 +2,8 @@
 
 import sys
 
+import util
+
 class Board():
     def __init__(self, size = 3):
         self.separatorDist = size
@@ -15,9 +17,16 @@ class Board():
             self.rowExclusions.append([])
             self.columnExclusions.append([])
 
-        self.maxRowExcl = 0
-        self.maxColExcl = 0
+        #self.maxRowExcl = 0
+        #self.maxColExcl = 0
 
+        self._initGrid()        
+
+        self._initCellPossibilities()
+
+        self.debug = False
+
+    def _initGrid(self):
         headerRow = []
         for i in xrange(0, self.size):
             headerRow.append(i)
@@ -31,6 +40,7 @@ class Board():
                 row.append(0)
             self.grid.append(row)
 
+    def _initCellPossibilities(self):
         self.cellPossibilities = [[[x for x in xrange(1, self.size)] for y in xrange(1, self.size)] for z in xrange(1, self.size)]
 
     def GetSize(self):
@@ -66,8 +76,8 @@ class Board():
             self.rowExclusions[x].append(val)
             self.columnExclusions[y].append(val)
 
-            self.maxRowExcl = max(self.maxRowExcl, len(self.rowExclusions[x]))
-            self.maxColExcl = max(self.maxColExcl, len(self.columnExclusions[y]))
+            #self.maxRowExcl = max(self.maxRowExcl, len(self.rowExclusions[x]))
+            #self.maxColExcl = max(self.maxColExcl, len(self.columnExclusions[y]))
 
             self.rowExclusions[x].sort()
             self.columnExclusions[y].sort()
@@ -97,59 +107,102 @@ class Board():
     def GetPossibleValues(self, x, y):
         return self.cellPossibilities[x - 1][y - 1]
 
-    def RemovePossibilities(self, x, y, val):
+    def ResetPossibility(self, x, y):
         self.cellPossibilities[x - 1][y - 1] = []
 
+        if self.debug:
+            print "resetting possibility list for", util.Helper().PointsToString(x, y)
+
+    def RemovePossibility(self, x, y, val):
+        try:
+            self.cellPossibilities[x - 1][y - 1].remove(val)
+
+            if self.debug:
+                print "removing", str(val), "as possibility for", util.Helper().PointsToString(x, y)
+        except (ValueError):
+            return
+
+    def RemovePossibilities(self, x, y, val):
+        if self.debug:
+            print "setting", str(val), "at", util.Helper().PointsToString(x, y)
+
+        #self.cellPossibilities[x - 1][y - 1] = []
+        self.ResetPossibility(x, y)
+
         for i in xrange(1, self.size):
-            try:
-                self.cellPossibilities[i - 1][y - 1].remove(val)
-            except (ValueError):
-                continue
+            #try:
+                #self.cellPossibilities[i - 1][y - 1].remove(val)
+            self.RemovePossibility(i, y, val)
+            #except (ValueError):
+                #continue
 
         for j in xrange(1, self.size):
-            try:
-                self.cellPossibilities[x - 1][j - 1].remove(val)
-            except (ValueError):
-                continue
+            #try:
+                #self.cellPossibilities[x - 1][j - 1].remove(val)
+            self.RemovePossibility(x, j, val)
+            #except (ValueError):
+                #continue
 
         cellX = (x - 1) // self.separatorDist
         cellY = (y - 1) // self.separatorDist
 
-        for i in xrange(self.separatorDist * cellX, self.separatorDist * (cellX + 1)):
-            for j in xrange(self.separatorDist * cellY, self.separatorDist * (cellY + 1)):
-                try:
-                    self.cellPossibilities[i][j].remove(val)
-                except (ValueError):
-                    continue
+        for i in xrange(1 + self.separatorDist * cellX, 1 + self.separatorDist * (cellX + 1)):
+            for j in xrange(1 + self.separatorDist * cellY, 1 + self.separatorDist * (cellY + 1)):
+                #try:
+                    #self.cellPossibilities[i][j].remove(val)
+                self.RemovePossibility(i, j, val)
+                #except (ValueError):
+                    #continue
+
+    def AddPossibility(self, x, y, val):
+        if 0 == self.cellPossibilities[x - 1][y - 1].count(val):
+            self.cellPossibilities[x - 1][y - 1].append(val)
+
+            if self.debug:
+                print "adding", str(val), "as possibility for", util.Helper().PointsToString(x, y)
+
 
     def AddPossibilities(self, x, y, val):
         for i in xrange(1, self.size):
-            if 0 == self.cellPossibilities[i - 1][y - 1].count(val):
-                self.cellPossibilities[i - 1][y - 1].append(val)
+            #if 0 == self.cellPossibilities[i - 1][y - 1].count(val):
+                #self.cellPossibilities[i - 1][y - 1].append(val)
+            self.AddPossibility(i, y, val)
 
         for j in xrange(1, self.size):
-            if 0 == self.cellPossibilities[x - 1][j - 1].count(val):
-                self.cellPossibilities[x - 1][j - 1].append(val)
+            #if 0 == self.cellPossibilities[x - 1][j - 1].count(val):
+                #self.cellPossibilities[x - 1][j - 1].append(val)
+            self.AddPossibility(x, j, val)
 
         cellX = (x - 1) // self.separatorDist
         cellY = (y - 1) // self.separatorDist
 
-        for i in xrange(self.separatorDist * cellX, self.separatorDist * (cellX + 1)):
-            for j in xrange(self.separatorDist * cellY, self.separatorDist * (cellY + 1)):
-                if 0 == self.cellPossibilities[i - 1][j - 1].count(val):
-                    self.cellPossibilities[i][j].append(val)
+        for i in xrange(1 + self.separatorDist * cellX, 1 + self.separatorDist * (cellX + 1)):
+            for j in xrange(1 + self.separatorDist * cellY, 1 + self.separatorDist * (cellY + 1)):
+                #if 0 == self.cellPossibilities[i - 1][j - 1].count(val):
+                    #self.cellPossibilities[i][j].append(val)
+                self.AddPossibility(i, j, val)
 
-        self.cellPossibilities[x - 1][y - 1] = [i for i in xrange(1, self.size)]
+        for i in xrange(1, self.size):
+            self.AddPossibility(x, y, i)
+
         for i in self.rowExclusions[x]:
-            try:
-                board.cellPossibilities[x - 1][y - 1].remove(i)
-            except (ValueError):
-                continue
-        for j in self.colExclusions[y]:
-            try:
-                board.cellPossibilities[x - 1][y - 1].remove(j)
-            except (ValueError):
-                continue
+            #try:
+                #board.cellPossibilities[x - 1][y - 1].remove(i)
+            self.RemovePossibility(x, y, i)
+            #except (ValueError):
+                #continue
+        for j in self.columnExclusions[y]:
+            #try:
+                #board.cellPossibilities[x - 1][y - 1].remove(j)
+            self.RemovePossibility(x, y, j)
+            #except (ValueError):
+                #continue
+        for i in xrange(1 + self.separatorDist * cellX, 1 + self.separatorDist * (cellX + 1)):
+            for j in xrange(1 + self.separatorDist * cellY, 1 + self.separatorDist * (cellY + 1)):
+                #if 0 == self.cellPossibilities[i - 1][j - 1].count(val):
+                    #self.cellPossibilities[i][j].append(val)
+                if not 0 == self.Get(i, j):
+                    self.RemovePossibility(x, y, self.Get(i, j))
 
 
     def HasSinglePossibility(self):
@@ -159,19 +212,37 @@ class Board():
                     if 0 == self.Get(i, j):
                         return i, j
                     else:
-                        try:
-                            board.cellPossibilities[i][j].remove(self.Get(i, j))
-                        except (ValueError):
-                            continue
+                        # if cell already has value, update possibilities
+                        #try:
+                            #self.cellPossibilities[i][j].remove(self.Get(i, j))
+                        self.RemovePossibility(i, j, self.Get(i, j))
+                        #except (ValueError):
+                            #continue
 
         return None, None
+
+    def FillSinglePossibility(self, x, y):
+        val = self.GetSinglePossibleValue(x, y)
+
+        if not 1 == len(val):
+            print "Error!", "cell (" + str(x) + ", " + str(y) + ") does not have single possible value"
+            return 1
+
+        if 0 == self.Get(x, y):
+            self.Set(x, y, val[0])
+
+        if 0 == self.Get(x, y):
+            print "Error!", "rules not fulfilled, this puzzle cannot be solved"
+            return -1
+
+        return 0
 
     def GetSinglePossibleValue(self, x, y):
         if not 1 == len(self.cellPossibilities[x - 1][y - 1]):
             message = "(" + str(x) + ", " + str(y) + ") does not have single possibility"
             raise RuntimeError(message)
 
-        return self.cellPossibilities[x - 1][y - 1][0]
+        return self.cellPossibilities[x - 1][y - 1]
 
     def CheckRowValid(self):
         for i in xrange(1, self.size):
@@ -227,9 +298,23 @@ class Board():
                 if 0 == self.Get(i, j):
                     return False
 
+        print "*****" * self.GetSize()
         self.Display()
+        print "*****" * self.GetSize()
+
         return True
 
+    def SetDebug(self, state):
+        self.debug = state
+
+    def IsDebug(self):
+        return self.debug
+
+    def PrintPossibilityMatrix(self):
+        for i in xrange(0, self.size - 1):
+            for j in xrange(0, self.size - 1):
+                if not 0 == len(self.cellPossibilities[i][j]):
+                    print util.Helper().PointsToString(i + 1, j + 1), ":", self.cellPossibilities[i][j]
 
     def Display(self):
         print
@@ -249,17 +334,17 @@ class Board():
                     sys.stdout.write("| ")
 
             # print the row exclusions
-            for j in xrange(0, self.maxRowExcl):
+            for j in xrange(0, self.size - 1):
                 if j < len(self.rowExclusions[i]):
                     sys.stdout.write(str(self.rowExclusions[i][j]) + " ")
 
             print
 
             if 0 == i % self.separatorDist and i < self.size:
-                print "--" * (self.size + (1 + self.size / self.separatorDist) + self.maxRowExcl)
+                print "--" * (self.size + (1 + self.size / self.separatorDist) + (self.size - 1))
 
-        # print the colun exclusions
-        for i in xrange(0, self.maxColExcl):
+        # print the column exclusions
+        for i in xrange(0, self.size - 1):
             for j in xrange(0, self.size):
                 if i < len(self.columnExclusions[j]):
                     sys.stdout.write(str(self.columnExclusions[j][i]) + " ")

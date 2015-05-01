@@ -26,9 +26,19 @@ class PuzzleFile():
                 if not '0' == row[j]:
                     self.board.Set(i + 1, j + 1, int(row[j]))
 
-        print "successfully parsed file"
+        print "successfully parsed file", self.filename
         self.board.Display()
 
     def GetBoard(self):
         return self.board
+
+class Helper():
+    def CheckZero(self, arg):
+        return 0 == arg
+
+    def CheckOne(self, arg):
+        return 1 == arg
+
+    def PointsToString(self, x, y):
+        return "(" + str(x) + ", " + str(y) + ")"
         
