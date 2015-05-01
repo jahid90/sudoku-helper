@@ -57,6 +57,11 @@ def tryWith(val, i, j, board, noDelay):
 
     _board.Display()
 
+    checkAndFillSinglePossibilities(_board)
+
+    if _board.IsSolved():
+        return True
+
     _i = i
     _j = (j + 1) % size
 
@@ -66,6 +71,18 @@ def tryWith(val, i, j, board, noDelay):
 
     if 0 == _i:
         return _board.IsSolved()
+
+    # find the next cell to check for; checkAndFillSinglePossibilities
+    # could have already filled in the cell we were going to try for
+    while not 0 == _board.Get(_i, _j):
+        _j = (_j + 1) % size
+
+        if 0 == _j:
+            _j = 1
+            _i = (_i + 1) % size
+
+        if 0 == _i:
+            return _board.IsSolved()
 
     if solve(_board, _i, _j, noDelay):
         return True
@@ -121,6 +138,12 @@ def solve(orig, x, y, noDelay):
                     print
 
                 for val in board.GetPossibleValues(i, j):
+                    if checkIfPreviousCellsEmpty(board, i, j):
+                        if board.IsDebug():
+                            print "previous cells are empty; this branch won't solve"
+
+                        break
+
                     retVal = tryWith(val, i, j, board, noDelay)
 
                     if retVal:
