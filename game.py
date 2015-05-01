@@ -39,6 +39,8 @@ def checkAndFillSinglePossibilities(board):
         print
 
 def tryWith(val, i, j, board, noDelay):
+    _board = copy.deepcopy(board)
+
     size = board.GetSize()
 
     if not noDelay:
@@ -47,13 +49,13 @@ def tryWith(val, i, j, board, noDelay):
 
     print "attempting with " + str(val) + " at (" + str(i) +  ", " + str(j) + ")"
 
-    board.Set(i, j, val)
+    _board.Set(i, j, val)
 
-    board.Display()
-
-    if 0 == board.Get(i, j):
+    if 0 == _board.Get(i, j):
         print "can't proceed, rules violation"
         return False
+
+    _board.Display()
 
     _i = i
     _j = (j + 1) % size
@@ -63,24 +65,43 @@ def tryWith(val, i, j, board, noDelay):
         _i = (i + 1) % size
 
     if 0 == _i:
-        return board.IsSolved()
+        return _board.IsSolved()
 
-    if solve(board, _i, _j, noDelay):
+    if solve(_board, _i, _j, noDelay):
         return True
 
-    print str(val), "at", util.Helper().PointsToString(i, j), "won't solve, reverting back"
-
-    board.Unset(i, j)
+    print str(val), "at", util.Helper().PointsToString(i, j), "won't solve"
 
     board.RemovePossibility(i, j, val)
 
     checkAndFillSinglePossibilities(board)
+
+    if board.IsSolved():
+        return True
+
+    return False
+
+def checkIfPreviousCellsEmpty(board, x, y):
+    for i in xrange(1, x):
+        for j in xrange(1, board.GetSize()):
+            if 0 == board.Get(i, j):
+                return True
+
+    for j in xrange(1, y):
+        if 0 == board.Get(x, j):
+            return True
 
     return False
 
 def solve(orig, x, y, noDelay):
     board = copy.deepcopy(orig)
     size = board.GetSize()
+
+    if checkIfPreviousCellsEmpty(board, x, y):
+        if board.IsDebug():
+            print "previous cells are empty; this branch won't solve"
+
+        return
 
     possibleValues = [n for n in xrange(1, size)]
 
@@ -95,6 +116,9 @@ def solve(orig, x, y, noDelay):
                 if board.IsDebug():
                     print "board configuration at this stage:"
                     board.Display()
+                    print
+                    board.PrintPossibilityMatrix()
+                    print
 
                 for val in board.GetPossibleValues(i, j):
                     retVal = tryWith(val, i, j, board, noDelay)

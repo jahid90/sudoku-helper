@@ -280,9 +280,9 @@ class Board():
                 if 0 == self.Get(i, j):
                     return False
 
-        print "*****" * self.GetSize()
+        print "*******" * self.GetSize()
         self.Display()
-        print "*****" * self.GetSize()
+        print "*******" * self.GetSize()
 
         return True
 
