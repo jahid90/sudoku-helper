@@ -9,22 +9,23 @@ class Board():
         self.separatorDist = size
         self.size = size * size + 1
 
+        self.debug = False
+
         self.grid = []
 
         self.rowExclusions = []
         self.columnExclusions = []
-        for i in xrange(0, self.size):
-            self.rowExclusions.append([])
-            self.columnExclusions.append([])
 
-        #self.maxRowExcl = 0
-        #self.maxColExcl = 0
+        self._initExcl()
 
         self._initGrid()        
 
         self._initCellPossibilities()
 
-        self.debug = False
+    def _initExcl(self):
+        for i in xrange(0, self.size):
+            self.rowExclusions.append([])
+            self.columnExclusions.append([])
 
     def _initGrid(self):
         headerRow = []
@@ -76,9 +77,6 @@ class Board():
             self.rowExclusions[x].append(val)
             self.columnExclusions[y].append(val)
 
-            #self.maxRowExcl = max(self.maxRowExcl, len(self.rowExclusions[x]))
-            #self.maxColExcl = max(self.maxColExcl, len(self.columnExclusions[y]))
-
             self.rowExclusions[x].sort()
             self.columnExclusions[y].sort()
 
@@ -94,9 +92,6 @@ class Board():
             self.columnExclusions[y].remove(val)
 
             self.AddPossibilities(x, y, val)
-
-            # TODO reset maxRowExcl and maxColExcl count
-            # entry could have been removed from row/col with max entries
 
     def Get(self, x, y):
         if not (0 < x < self.size and 0 < y < self.size):
@@ -126,81 +121,73 @@ class Board():
         if self.debug:
             print "setting", str(val), "at", util.Helper().PointsToString(x, y)
 
-        #self.cellPossibilities[x - 1][y - 1] = []
         self.ResetPossibility(x, y)
 
         for i in xrange(1, self.size):
-            #try:
-                #self.cellPossibilities[i - 1][y - 1].remove(val)
             self.RemovePossibility(i, y, val)
-            #except (ValueError):
-                #continue
 
         for j in xrange(1, self.size):
-            #try:
-                #self.cellPossibilities[x - 1][j - 1].remove(val)
             self.RemovePossibility(x, j, val)
-            #except (ValueError):
-                #continue
 
         cellX = (x - 1) // self.separatorDist
         cellY = (y - 1) // self.separatorDist
 
         for i in xrange(1 + self.separatorDist * cellX, 1 + self.separatorDist * (cellX + 1)):
             for j in xrange(1 + self.separatorDist * cellY, 1 + self.separatorDist * (cellY + 1)):
-                #try:
-                    #self.cellPossibilities[i][j].remove(val)
                 self.RemovePossibility(i, j, val)
-                #except (ValueError):
-                    #continue
 
     def AddPossibility(self, x, y, val):
+        if not 0 == self.Get(x, y):
+            if self.debug:
+                print "already filled; cannot add", str(val), "as possibility for", util.Helper().PointsToString(x, y)
+
+            return
+
         if 0 == self.cellPossibilities[x - 1][y - 1].count(val):
             self.cellPossibilities[x - 1][y - 1].append(val)
 
             if self.debug:
                 print "adding", str(val), "as possibility for", util.Helper().PointsToString(x, y)
 
+    def NotInMiniSquare(self, val, x, y):
+        cellX = (x - 1) // self.separatorDist
+        cellY = (y - 1) // self.separatorDist
+
+        for i in xrange(1 + self.separatorDist * cellX, 1 + self.separatorDist * (cellX + 1)):
+            for j in xrange(1 + self.separatorDist * cellY, 1 + self.separatorDist * (cellY + 1)):
+                if val == self.Get(i, j):
+                    return False
+
+        return True
 
     def AddPossibilities(self, x, y, val):
         for i in xrange(1, self.size):
-            #if 0 == self.cellPossibilities[i - 1][y - 1].count(val):
-                #self.cellPossibilities[i - 1][y - 1].append(val)
-            self.AddPossibility(i, y, val)
+            if self.NotInMiniSquare(val, i, y):
+                self.AddPossibility(i, y, val)
 
         for j in xrange(1, self.size):
-            #if 0 == self.cellPossibilities[x - 1][j - 1].count(val):
-                #self.cellPossibilities[x - 1][j - 1].append(val)
-            self.AddPossibility(x, j, val)
+            if self.NotInMiniSquare(val, i, y):
+                self.AddPossibility(x, j, val)
 
         cellX = (x - 1) // self.separatorDist
         cellY = (y - 1) // self.separatorDist
 
         for i in xrange(1 + self.separatorDist * cellX, 1 + self.separatorDist * (cellX + 1)):
             for j in xrange(1 + self.separatorDist * cellY, 1 + self.separatorDist * (cellY + 1)):
-                #if 0 == self.cellPossibilities[i - 1][j - 1].count(val):
-                    #self.cellPossibilities[i][j].append(val)
-                self.AddPossibility(i, j, val)
+                if self.NotInMiniSquare(val, i, y):
+                    self.AddPossibility(i, j, val)
 
         for i in xrange(1, self.size):
             self.AddPossibility(x, y, i)
 
         for i in self.rowExclusions[x]:
-            #try:
-                #board.cellPossibilities[x - 1][y - 1].remove(i)
             self.RemovePossibility(x, y, i)
-            #except (ValueError):
-                #continue
+
         for j in self.columnExclusions[y]:
-            #try:
-                #board.cellPossibilities[x - 1][y - 1].remove(j)
             self.RemovePossibility(x, y, j)
-            #except (ValueError):
-                #continue
+
         for i in xrange(1 + self.separatorDist * cellX, 1 + self.separatorDist * (cellX + 1)):
             for j in xrange(1 + self.separatorDist * cellY, 1 + self.separatorDist * (cellY + 1)):
-                #if 0 == self.cellPossibilities[i - 1][j - 1].count(val):
-                    #self.cellPossibilities[i][j].append(val)
                 if not 0 == self.Get(i, j):
                     self.RemovePossibility(x, y, self.Get(i, j))
 
@@ -212,12 +199,7 @@ class Board():
                     if 0 == self.Get(i, j):
                         return i, j
                     else:
-                        # if cell already has value, update possibilities
-                        #try:
-                            #self.cellPossibilities[i][j].remove(self.Get(i, j))
                         self.RemovePossibility(i, j, self.Get(i, j))
-                        #except (ValueError):
-                            #continue
 
         return None, None
 
@@ -232,7 +214,7 @@ class Board():
             self.Set(x, y, val[0])
 
         if 0 == self.Get(x, y):
-            print "Error!", "rules not fulfilled, this puzzle cannot be solved"
+            print "Error!", "rules not fulfilled"
             return -1
 
         return 0
@@ -287,7 +269,7 @@ class Board():
                 retVal = self.CheckMiniSquareValid(i, j)
 
                 if False == retVal:
-                    sys.stdout.write("Warning! mini square (" + str(i + 1) + ", " + str(j + 1) + ") ")
+                    sys.stdout.write("Warning! mini square " + util.Helper.PointsToString(i, j) + " is not valid")
                     return False
 
         return True

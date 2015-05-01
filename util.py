@@ -33,12 +33,6 @@ class PuzzleFile():
         return self.board
 
 class Helper():
-    def CheckZero(self, arg):
-        return 0 == arg
-
-    def CheckOne(self, arg):
-        return 1 == arg
-
     def PointsToString(self, x, y):
         return "(" + str(x) + ", " + str(y) + ")"
         

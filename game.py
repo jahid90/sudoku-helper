@@ -2,7 +2,6 @@
 
 import copy
 import sys
-import time
 
 import board
 import util
@@ -15,7 +14,7 @@ def checkAndFillSinglePossibilities(board):
         if board.IsDebug():
             board.Display()
             print
-            print board.PrintPossibilityMatrix()
+            board.PrintPossibilityMatrix()
             print
             print "next single possibility at", util.Helper().PointsToString(i, j)
 
@@ -25,7 +24,10 @@ def checkAndFillSinglePossibilities(board):
             retVal = board.FillSinglePossibility(i, j)
 
             if -1 == retVal:
-                sys.exit(-1)
+                if board.IsDebug():
+                    print "this branch won't result in solution"
+
+                return
 
     print
     print "after filling in single possibilities:"
@@ -33,13 +35,14 @@ def checkAndFillSinglePossibilities(board):
 
     if board.IsDebug():
         print
-        print board.PrintPossibilityMatrix()
+        board.PrintPossibilityMatrix()
         print
 
 def tryWith(val, i, j, board, noDelay):
     size = board.GetSize()
 
     if not noDelay:
+        import time
         time.sleep(2)
 
     print "attempting with " + str(val) + " at (" + str(i) +  ", " + str(j) + ")"
@@ -50,7 +53,6 @@ def tryWith(val, i, j, board, noDelay):
 
     if 0 == board.Get(i, j):
         print "can't proceed, rules violation"
-        #continue
         return False
 
     _i = i
@@ -67,14 +69,12 @@ def tryWith(val, i, j, board, noDelay):
         return True
 
     print str(val), "at", util.Helper().PointsToString(i, j), "won't solve, reverting back"
-    #try:
-        #board.cellPossibilities[i - 1][j - 1].remove(val)
-    board.RemovePossibility(i, j, val)
-    checkAndFillSinglePossibilities(board)
-    #except (ValueError):
-        #return False
 
     board.Unset(i, j)
+
+    board.RemovePossibility(i, j, val)
+
+    checkAndFillSinglePossibilities(board)
 
     return False
 
@@ -145,7 +145,7 @@ def main():
     puzzleFile.GetBoard().SetDebug(debug)
 
     if debug:
-        print puzzleFile.GetBoard().PrintPossibilityMatrix()
+        puzzleFile.GetBoard().PrintPossibilityMatrix()
         print
 
     if attemptToSolve:
@@ -154,15 +154,7 @@ def main():
         if solve(puzzleFile.GetBoard(), 1, 1, noDelay):
             print "Congratulations!", "the puzzle has been solved!"
         else:
-            board = puzzleFile.GetBoard()
-
-            #checkAndFillSinglePossibilities(board)
-
-            if board.IsSolved():
-                print "Congratulations!", "the puzzle has been solved!"
-            else:
-                print "Sorry!", "the puzzle could not be solved"
-                #print board.cellPossibilities
+            print "Sorry!", "the puzzle could not be solved"
 
     print
 
