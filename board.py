@@ -10,6 +10,7 @@ class Board():
         self.size = size * size + 1
 
         self.debug = False
+        self.invertExcl = False
 
         self.grid = []
 
@@ -280,11 +281,36 @@ class Board():
                 if 0 == self.Get(i, j):
                     return False
 
-        print "*******" * self.GetSize()
+        print "***" * 2 * self.GetSize()
         self.Display()
-        print "*******" * self.GetSize()
+        print "***" * 2 * self.GetSize()
 
         return True
+
+    def SetInvertExcl(self, invertExcl):
+        self.invertExcl = invertExcl
+
+    def GetInverseExcl(self, type, idx):
+        if 0 == idx:
+            return []
+
+        if "row" == type:
+            r = [x for x in xrange(1, self.GetSize())]
+
+            for i in self.rowExclusions[idx]:
+                r.remove(i)
+
+            return r
+
+        if "col" == type:
+            c = [x for x in xrange(1, self.GetSize())]
+
+            for i in self.columnExclusions[idx]:
+                c.remove(i)
+
+            return c
+
+        return None
 
     def SetDebug(self, state):
         self.debug = state
@@ -297,6 +323,15 @@ class Board():
             for j in xrange(0, self.size - 1):
                 if not 0 == len(self.cellPossibilities[i][j]):
                     print util.Helper().PointsToString(i + 1, j + 1), ":", self.cellPossibilities[i][j]
+
+    def PrintExclusions(self):
+        print "rows"
+        for i in xrange(1, self.GetSize()):
+            print i, ":", self.rowExclusions[i]
+
+        print "cols"
+        for j in xrange(1, self.GetSize()):
+            print j, ":", self.columnExclusions[j]
 
     def Display(self):
         print
@@ -316,9 +351,16 @@ class Board():
                     sys.stdout.write("| ")
 
             # print the row exclusions
+            if self.invertExcl:
+                r = self.GetInverseExcl("row", i)
+            else:
+                r = self.rowExclusions[i]
+
             for j in xrange(0, self.size - 1):
-                if j < len(self.rowExclusions[i]):
-                    sys.stdout.write(str(self.rowExclusions[i][j]) + " ")
+                if not 0 == r.count(j + 1):
+                    sys.stdout.write(str(j + 1) + " ")
+                else:
+                    sys.stdout.write("  ")
 
             print
 
@@ -328,8 +370,15 @@ class Board():
         # print the column exclusions
         for i in xrange(0, self.size - 1):
             for j in xrange(0, self.size):
-                if i < len(self.columnExclusions[j]):
-                    sys.stdout.write(str(self.columnExclusions[j][i]) + " ")
+                if self.invertExcl:
+                    c = self.GetInverseExcl("col", j)
+                else:
+                    c = self.columnExclusions[j]
+
+                #if i < len(self.columnExclusions[j]):
+                    #sys.stdout.write(str(self.columnExclusions[j][i]) + " ")
+                if not 0 == c.count(i + 1):
+                    sys.stdout.write(str(i + 1) + " ")
                 else:
                     sys.stdout.write("  ")
 

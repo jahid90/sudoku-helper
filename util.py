@@ -26,9 +26,6 @@ class PuzzleFile():
                 if not '0' == row[j]:
                     self.board.Set(i + 1, j + 1, int(row[j]))
 
-        print "successfully parsed file", self.filename
-        self.board.Display()
-
     def GetBoard(self):
         return self.board
 

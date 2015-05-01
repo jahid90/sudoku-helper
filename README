@@ -1,19 +1,22 @@
 a sudoku solver and helper
 
-usage: ./game.py [OPTS] samplefile
+usage: ./game.py [OPTIONS] samplefile
 
-OPTS
+OPTIONS
     --solve         attempt to solve the puzzle
     --no-delay      do not pause between steps
+    --debug         enable debug messages
+    --invert-excl   display possibilities instead of entries already filled in
+    --help          display this help and exit
 
 to use, create a file with the sudoku puzzle in the format
 
 // sample
 2               // the puzzle size, 2x2
-1 2 3 4         // replace by 0 for blanks
-3 4 1 2
-4 3 2 1
-2 1 4 3
+1 2 3 4         // 0s are blanks
+0 4 0 2
+4 3 0 1
+2 0 4 3
 
 then run 
 $./game.py --solve sample
@@ -63,5 +66,6 @@ TODO
     c. add support for characters other than just numbers
 
     d. improve solver algorithm(?)
-
-    e. invert exclusions - display entries which can be filled in that row/column instead of what has been filled in already
+        --check for group exclusions
+        --for a group of possibilities(row, column, mini-squares), check to see
+        if one of them has an entry no one else has. if so, that entry must be in that particuar cell

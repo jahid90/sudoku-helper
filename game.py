@@ -154,13 +154,15 @@ def solve(orig, x, y, noDelay):
 def usage():
     progName = sys.argv[0][sys.argv[0].rfind('/') + 1 : ]
     params = " <file_with_sudoku_puzzle>"
-    options = " [OPTionsS]"
+    options = " [OPTIONS]"
 
     optDetails = """
-OPTS
+OPTIONS
     --solve         attempt to solve the puzzle
     --no-delay      do not pause between steps
     --debug         enable debug messages
+    --invert-excl   display possibilities instead of entries already filled in
+    --help          display this help and exit
     """
 
     usage = "usage: " + progName + options + params
@@ -174,6 +176,7 @@ def main():
     attemptToSolve = False
     noDelay = False
     debug = False
+    invertExcl = False
 
     if not 0 == sys.argv.count('--solve'):
         attemptToSolve = True
@@ -184,16 +187,24 @@ def main():
     if not 0 == sys.argv.count('--debug'):
         debug = True
 
+    if not 0 == sys.argv.count('--invert-excl'):
+        invertExcl = True
+
     puzzleFile = util.PuzzleFile(path)
 
     puzzleFile.Read()
     puzzleFile.Parse()
 
     puzzleFile.GetBoard().SetDebug(debug)
+    puzzleFile.GetBoard().SetInvertExcl(invertExcl)
+
+    print "successfully parsed file", path
+    puzzleFile.GetBoard().Display()
 
     if debug:
         puzzleFile.GetBoard().PrintPossibilityMatrix()
         print
+
 
     if attemptToSolve:
         print
@@ -206,7 +217,7 @@ def main():
     print
 
 if __name__ == '__main__':
-    if len(sys.argv) < 2:
+    if len(sys.argv) < 2 or not 0 == sys.argv.count('--help'):
         usage()
     else:
         main()
